@@ -75,6 +75,7 @@ router.patch('/:id', async (req, res) => {
   if (priority !== undefined) args.push(`--priority=${priority}`)
   if (assignee) args.push(`--assignee=${assignee}`)
   if (status === 'in_progress') args.push('--claim')
+  else if (status && status !== 'in_progress') return res.status(400).json({ error: `Cannot set status '${status}' via update. Use close/defer endpoints for other transitions.` })
   try { res.json(await runBd(project.path, args)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
