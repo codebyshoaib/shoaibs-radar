@@ -1,12 +1,12 @@
 // server/lib/scanner.js
 import { readdir, readFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, basename } from 'node:path'
 
 const HOME = '/home/shoaib'
 const MAX_DEPTH = 3
 
 async function scanDir(dir, depth) {
-  if (depth > MAX_DEPTH) return []
+  if (depth >= MAX_DEPTH) return []
   let entries
   try {
     entries = await readdir(dir, { withFileTypes: true })
@@ -28,8 +28,8 @@ async function scanDir(dir, depth) {
         const raw = await readFile(metaPath, 'utf8')
         const meta = JSON.parse(raw)
         results.push({
-          id: meta.dolt_database || entry.name,
-          name: meta.dolt_database || entry.name,
+          id: meta.dolt_database ?? basename(dir),
+          name: meta.dolt_database ?? basename(dir),
           path: dir,
           beadsPath: join(dir, '.beads'),
           projectId: meta.project_id,
