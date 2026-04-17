@@ -9,3 +9,7 @@ client/dist/
 *.db
 .beads-credential-key
 .beads/
+
+# Local agent/AI context
+.claude/
+docs/
