@@ -6,8 +6,9 @@ import { discoverProjects } from './lib/scanner.js'
 import projectsRouter from './routes/projects.js'
 import issuesRouter from './routes/issues.js'
 
-// Kill any stale bd processes and clear dolt locks on startup
+// Kill any previous server on this port and stale bd processes
 try {
+  execSync(`fuser -k ${3131}/tcp 2>/dev/null || true`)
   execSync(`pkill -9 -x bd 2>/dev/null || true`)
   execSync(`find ${process.env.HOME} -name ".lock" -path "*embeddeddolt*" -delete 2>/dev/null || true`)
 } catch {}
