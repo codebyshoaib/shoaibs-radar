@@ -10,8 +10,8 @@ export function Sidebar({ projects, activeId, onSelect, onRefresh, loading }) {
   return (
     <aside className="w-56 min-h-screen bg-gray-900 border-r border-gray-700 flex flex-col">
       <div className="p-4 border-b border-gray-700">
-        <h1 className="text-white font-bold text-lg font-mono">beads</h1>
-        <p className="text-gray-400 text-xs">issue tracker</p>
+        <h1 className="text-white font-bold text-lg font-mono">Shoaib's Radar</h1>
+        <p className="text-gray-400 text-xs">beads issue tracker</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
