@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { Sidebar } from './components/Sidebar.jsx'
 import { TopBar } from './components/TopBar.jsx'
 import { IssuesTable } from './components/IssuesTable.jsx'
+import { IssueDetailPanel } from './components/IssueDetailPanel.jsx'
+import { CreateIssueModal } from './components/CreateIssueModal.jsx'
 import { useProjects } from './hooks/useProjects.js'
 
 export default function App() {
@@ -34,10 +36,12 @@ export default function App() {
                 />
               </div>
               {selectedIssueId && (
-                <div className="w-96 border-l border-gray-700 bg-gray-900 p-4 overflow-y-auto">
-                  <p className="text-gray-400 text-sm">Detail panel placeholder: {selectedIssueId}</p>
-                  <button onClick={() => setSelectedIssueId(null)} className="text-xs text-gray-500 mt-2">✕ Close</button>
-                </div>
+                <IssueDetailPanel
+                  projectId={activeProject.id}
+                  issueId={selectedIssueId}
+                  onClose={() => setSelectedIssueId(null)}
+                  onUpdate={refresh}
+                />
               )}
             </div>
           </>
@@ -45,6 +49,13 @@ export default function App() {
           <p className="p-8 text-gray-500">No projects found.</p>
         )}
       </main>
+      {showCreateModal && activeProject && (
+        <CreateIssueModal
+          projectId={activeProject.id}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => { setShowCreateModal(false); refresh() }}
+        />
+      )}
     </div>
   )
 }
