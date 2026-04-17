@@ -2,6 +2,7 @@
 import { Router } from 'express'
 import { getProjectById } from '../lib/scanner.js'
 import { runBd } from '../lib/bd.js'
+import { listIssues, getIssue, getStats, searchIssues, getReadyIssues, getBlockedIssues } from '../lib/store.js'
 
 const router = Router({ mergeParams: true })
 
@@ -11,52 +12,48 @@ function getProject(req, res) {
   return project
 }
 
-// List issues with optional filters
+// Reads — served from issues.jsonl directly, instant
 router.get('/', async (req, res) => {
   const project = getProject(req, res); if (!project) return
-  const args = ['list', '--json']
-  if (req.query.status) args.push('--status=' + req.query.status)
-  if (req.query.priority) args.push('--priority=' + req.query.priority)
-  if (req.query.type) args.push('--type=' + req.query.type)
-  try { res.json(await runBd(project.path, args) ?? []) }
+  try { res.json(await listIssues(project.path, req.query)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.get('/stats', async (req, res) => {
   const project = getProject(req, res); if (!project) return
-  try { res.json(await runBd(project.path, ['stats', '--json'])) }
+  try { res.json(await getStats(project.path)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.get('/search', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   if (!req.query.q) return res.json([])
-  try { res.json(await runBd(project.path, ['search', req.query.q, '--json']) ?? []) }
+  try { res.json(await searchIssues(project.path, req.query.q)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.get('/ready', async (req, res) => {
   const project = getProject(req, res); if (!project) return
-  try { res.json(await runBd(project.path, ['ready', '--json']) ?? []) }
+  try { res.json(await getReadyIssues(project.path)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.get('/blocked', async (req, res) => {
   const project = getProject(req, res); if (!project) return
-  try { res.json(await runBd(project.path, ['blocked', '--json']) ?? []) }
+  try { res.json(await getBlockedIssues(project.path)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 router.get('/:id', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   try {
-    const result = await runBd(project.path, ['show', req.params.id, '--json'])
-    const issue = Array.isArray(result) ? result[0] : result
+    const issue = await getIssue(project.path, req.params.id)
     if (!issue) return res.status(404).json({ error: 'Issue not found' })
     res.json(issue)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+// Writes — still go through bd cli
 router.post('/', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   const { title, description, type, priority, assignee, acceptance, design } = req.body

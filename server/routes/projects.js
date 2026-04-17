@@ -1,19 +1,13 @@
 // server/routes/projects.js
 import { Router } from 'express'
 import { discoverProjects, getCachedProjects } from '../lib/scanner.js'
-import { runBd } from '../lib/bd.js'
+import { getStats } from '../lib/store.js'
 
 const router = Router()
 
-const ENRICH_TIMEOUT = 5000
-
-function withTimeout(promise, ms) {
-  return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
-}
-
 async function enrichProject(project) {
-  const stats = await withTimeout(runBd(project.path, ['stats', '--json']), ENRICH_TIMEOUT).catch(() => null)
-  return { ...project, stats: stats?.summary ?? null }
+  const stats = await getStats(project.path).catch(() => null)
+  return { ...project, stats }
 }
 
 router.get('/', async (req, res) => {
