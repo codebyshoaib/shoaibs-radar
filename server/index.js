@@ -17,7 +17,7 @@ app.use('/api/:projectId/issues', issuesRouter)
 app.use('/api/:projectId/git', gitRouter)
 
 app.listen(PORT, async () => {
-  console.log(`beads-ui server running on http://localhost:${PORT}`)
+  console.log(`Shoaib's Radar server running on http://localhost:${PORT}`)
   await discoverProjects()
   console.log('Project scan complete')
 })
