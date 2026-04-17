@@ -1,9 +1,17 @@
 // server/index.js
 import express from 'express'
 import cors from 'cors'
+import { execSync } from 'node:child_process'
 import { discoverProjects } from './lib/scanner.js'
 import projectsRouter from './routes/projects.js'
 import issuesRouter from './routes/issues.js'
+
+// Kill any stale bd processes and clear dolt locks on startup
+try {
+  execSync(`pkill -9 -x bd 2>/dev/null || true`)
+  execSync(`find ${process.env.HOME} -name ".lock" -path "*embeddeddolt*" -delete 2>/dev/null || true`)
+} catch {}
+
 const app = express()
 const PORT = 3131
 
