@@ -82,7 +82,8 @@ router.patch('/:id', async (req, res) => {
   if (priority !== undefined) args.push(`--priority=${priority}`)
   if (assignee) args.push(`--assignee=${assignee}`)
   if (status === 'in_progress') args.push('--claim')
-  else if (status && status !== 'in_progress') return res.status(400).json({ error: `Cannot set status '${status}' via update. Use close/defer endpoints for other transitions.` })
+  else if (status === 'open') args.push('--status=open')
+  else if (status === 'blocked') args.push('--status=blocked')
   try { res.json(await runBd(project.path, args)) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
@@ -91,7 +92,7 @@ router.delete('/:id', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   const args = ['close', req.params.id]
   if (req.body?.reason) args.push(`--reason=${req.body.reason}`)
-  try { res.json(await runBd(project.path, args)) }
+  try { await runBd(project.path, args); res.json({ ok: true }) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
