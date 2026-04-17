@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api.js'
+import { DependencyGraph } from './DependencyGraph.jsx'
 
 export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate }) {
   const [issue, setIssue] = useState(null)
@@ -15,6 +16,7 @@ export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate }) {
   const [showDeferForm, setShowDeferForm] = useState(false)
   const [deferDate, setDeferDate] = useState('')
   const [newLabel, setNewLabel] = useState('')
+  const [showGraph, setShowGraph] = useState(false)
   const [error, setError] = useState(null)
 
   async function load() {
@@ -214,7 +216,17 @@ export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate }) {
 
         {/* Dependencies */}
         <div>
-          <label className="text-gray-500 text-xs block mb-1">Dependencies</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-gray-500 text-xs">Dependencies</label>
+            <button onClick={() => setShowGraph(g => !g)} className="text-xs text-blue-400 hover:text-blue-300">
+              {showGraph ? 'Hide graph' : 'Show graph'}
+            </button>
+          </div>
+          {showGraph && (
+            <div className="mb-3 bg-gray-800 rounded p-2 overflow-x-auto">
+              <DependencyGraph issue={issue} onSelectIssue={id => { onClose(); setTimeout(() => onUpdate?.(), 0) }} />
+            </div>
+          )}
           {(issue.dependencies ?? []).length > 0 && (
             <div className="mb-1">
               <p className="text-gray-600 text-xs mb-1">Depends on:</p>
