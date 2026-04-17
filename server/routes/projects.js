@@ -6,7 +6,6 @@ import { runBd } from '../lib/bd.js'
 const router = Router()
 
 const ENRICH_TIMEOUT = 5000
-const enrichCache = new Map()
 
 function withTimeout(promise, ms) {
   return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
@@ -14,22 +13,15 @@ function withTimeout(promise, ms) {
 
 async function enrichProject(project) {
   const stats = await withTimeout(runBd(project.path, ['stats', '--json']), ENRICH_TIMEOUT).catch(() => null)
-  const enriched = { ...project, stats: stats?.summary ?? null }
-  enrichCache.set(project.id, enriched)
-  return enriched
-}
-
-function enrichInBackground(projects) {
-  Promise.allSettled(projects.map(enrichProject)).catch(() => {})
+  return { ...project, stats: stats?.summary ?? null }
 }
 
 router.get('/', async (req, res) => {
   try {
     let projects = getCachedProjects()
     if (!projects.length) projects = await discoverProjects()
-    const result = projects.map(p => enrichCache.get(p.id) ?? p)
-    res.json(result)
-    enrichInBackground(projects)
+    const enriched = await Promise.all(projects.map(enrichProject))
+    res.json(enriched)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

@@ -25,11 +25,7 @@ export function useIssues(projectId, tab = 'all', filters = {}) {
     }
   }, [projectId, tab, filtersKey])
 
-  useEffect(() => {
-    load()
-    const interval = setInterval(load, 30_000)
-    return () => clearInterval(interval)
-  }, [load])
+  useEffect(() => { load() }, [load])
 
   return { issues, loading, error, reload: load }
 }
