@@ -6,10 +6,16 @@ import { runBd } from '../lib/bd.js'
 
 const router = Router()
 
+const ENRICH_TIMEOUT = 5000
+
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
+}
+
 async function enrichProject(project) {
   const [git, stats] = await Promise.allSettled([
-    getGitInfo(project.path),
-    runBd(project.path, ['stats', '--json']),
+    withTimeout(getGitInfo(project.path), ENRICH_TIMEOUT),
+    withTimeout(runBd(project.path, ['stats', '--json']), ENRICH_TIMEOUT),
   ])
   return {
     ...project,
