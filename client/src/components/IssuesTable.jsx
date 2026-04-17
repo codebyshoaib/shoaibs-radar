@@ -1,6 +1,7 @@
 // client/src/components/IssuesTable.jsx
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useIssues } from '../hooks/useIssues.js'
+import { api } from '../api.js'
 
 const PRIORITY_BADGES = {
   0: 'bg-red-900 text-red-200',
@@ -30,10 +31,31 @@ export function IssuesTable({ projectId, onSelectIssue }) {
   const [tab, setTab] = useState('all')
   const [filters, setFilters] = useState({})
   const { issues, loading, error, reload } = useIssues(projectId, tab, filters)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const debounceRef = useRef(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!searchQuery.trim()) { setSearchResults(null); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        const results = await api.searchIssues(projectId, searchQuery.trim())
+        setSearchResults(results ?? [])
+      } catch { setSearchResults([]) }
+      finally { setSearchLoading(false) }
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchQuery, projectId])
 
   function setFilter(key, value) {
     setFilters(f => value ? { ...f, [key]: value } : Object.fromEntries(Object.entries(f).filter(([k]) => k !== key)))
   }
+
+  const displayIssues = searchResults !== null ? searchResults : issues
+  const displayLoading = searchResults !== null ? searchLoading : loading
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -83,17 +105,24 @@ export function IssuesTable({ projectId, onSelectIssue }) {
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search issues…"
+          className="bg-gray-800 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-48"
+        />
         <button onClick={reload} className="ml-auto text-xs text-gray-500 hover:text-gray-300">↺</button>
       </div>
 
       {/* Table */}
       <div className="flex-1 overflow-y-auto">
-        {loading && <p className="text-gray-500 text-sm p-4">Loading…</p>}
-        {error && <p className="text-red-400 text-sm p-4">Error: {error}</p>}
-        {!loading && !error && issues.length === 0 && (
+        {displayLoading && <p className="text-gray-500 text-sm p-4">Loading…</p>}
+        {error && searchResults === null && <p className="text-red-400 text-sm p-4">Error: {error}</p>}
+        {!displayLoading && displayIssues.length === 0 && (
           <p className="text-gray-500 text-sm p-4">No issues found.</p>
         )}
-        {issues.map(issue => (
+        {displayIssues.map(issue => (
           <div
             key={issue.id}
             onClick={() => onSelectIssue(issue.id)}

@@ -37,8 +37,9 @@ export const api = {
 
   deferIssue: (projectId, id, until) => req(`/${projectId}/issues/${id}/defer`, { method: 'POST', body: { until } }),
   addLabel: (projectId, id, label) => req(`/${projectId}/issues/${id}/labels`, { method: 'POST', body: { label } }),
-  removeLabel: (projectId, id, label) => req(`/${projectId}/issues/${id}/labels`, { method: 'POST', body: { label, remove: true } }),
+  removeLabel: (projectId, id, label) => req(`/${projectId}/issues/${id}/labels/${encodeURIComponent(label)}`, { method: 'DELETE' }),
 
   getGit: (projectId) => req(`/${projectId}/git`),
   getStats: (projectId) => req(`/${projectId}/issues/stats`),
+  searchIssues: (projectId, query) => req(`/${projectId}/issues/search?q=${encodeURIComponent(query)}`),
 }

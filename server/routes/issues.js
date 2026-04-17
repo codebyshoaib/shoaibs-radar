@@ -28,6 +28,13 @@ router.get('/stats', async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+router.get('/search', async (req, res) => {
+  const project = getProject(req, res); if (!project) return
+  if (!req.query.q) return res.json([])
+  try { res.json(await runBd(project.path, ['search', req.query.q, '--json']) ?? []) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 router.get('/ready', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   try { res.json(await runBd(project.path, ['ready', '--json']) ?? []) }
@@ -126,8 +133,13 @@ router.post('/:id/defer', async (req, res) => {
 router.post('/:id/labels', async (req, res) => {
   const project = getProject(req, res); if (!project) return
   if (!req.body?.label) return res.status(400).json({ error: 'label is required' })
-  const action = req.body.remove ? 'remove' : 'add'
-  try { res.json(await runBd(project.path, ['label', action, req.params.id, req.body.label])) }
+  try { res.json(await runBd(project.path, ['label', 'add', req.params.id, req.body.label])) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+router.delete('/:id/labels/:label', async (req, res) => {
+  const project = getProject(req, res); if (!project) return
+  try { res.json(await runBd(project.path, ['label', 'remove', req.params.id, decodeURIComponent(req.params.label)])) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 

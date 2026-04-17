@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { api } from '../api.js'
 import { DependencyGraph } from './DependencyGraph.jsx'
 
-export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate }) {
+export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate, onSelectIssue }) {
   const [issue, setIssue] = useState(null)
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -224,7 +224,7 @@ export function IssueDetailPanel({ projectId, issueId, onClose, onUpdate }) {
           </div>
           {showGraph && (
             <div className="mb-3 bg-gray-800 rounded p-2 overflow-x-auto">
-              <DependencyGraph issue={issue} onSelectIssue={id => { onClose(); setTimeout(() => onUpdate?.(), 0) }} />
+              <DependencyGraph issue={issue} onSelectIssue={onSelectIssue} />
             </div>
           )}
           {(issue.dependencies ?? []).length > 0 && (

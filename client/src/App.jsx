@@ -6,6 +6,7 @@ import { IssuesTable } from './components/IssuesTable.jsx'
 import { IssueDetailPanel } from './components/IssueDetailPanel.jsx'
 import { CreateIssueModal } from './components/CreateIssueModal.jsx'
 import { useProjects } from './hooks/useProjects.js'
+import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 
 export default function App() {
   const { projects, loading, refresh } = useProjects()
@@ -25,29 +26,32 @@ export default function App() {
         loading={loading}
       />
       <main className="flex-1 flex flex-col overflow-hidden">
-        {activeProject ? (
-          <>
-            <TopBar project={activeProject} onNewIssue={() => setShowCreateModal(true)} />
-            <div className="flex-1 flex overflow-hidden">
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <IssuesTable
-                  projectId={activeProject.id}
-                  onSelectIssue={setSelectedIssueId}
-                />
+        <ErrorBoundary>
+          {activeProject ? (
+            <>
+              <TopBar project={activeProject} onNewIssue={() => setShowCreateModal(true)} />
+              <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <IssuesTable
+                    projectId={activeProject.id}
+                    onSelectIssue={setSelectedIssueId}
+                  />
+                </div>
+                {selectedIssueId && (
+                  <IssueDetailPanel
+                    projectId={activeProject.id}
+                    issueId={selectedIssueId}
+                    onClose={() => setSelectedIssueId(null)}
+                    onUpdate={refresh}
+                    onSelectIssue={setSelectedIssueId}
+                  />
+                )}
               </div>
-              {selectedIssueId && (
-                <IssueDetailPanel
-                  projectId={activeProject.id}
-                  issueId={selectedIssueId}
-                  onClose={() => setSelectedIssueId(null)}
-                  onUpdate={refresh}
-                />
-              )}
-            </div>
-          </>
-        ) : (
-          <p className="p-8 text-gray-500">No projects found.</p>
-        )}
+            </>
+          ) : (
+            <p className="p-8 text-gray-500">No projects found.</p>
+          )}
+        </ErrorBoundary>
       </main>
       {showCreateModal && activeProject && (
         <CreateIssueModal
