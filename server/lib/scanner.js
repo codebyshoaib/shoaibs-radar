@@ -2,7 +2,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { join, basename } from 'node:path'
 
-const HOME = '/home/shoaib'
+const HOME = process.env.HOME || process.env.USERPROFILE || '/home'
 const MAX_DEPTH = 3
 
 async function scanDir(dir, depth) {
